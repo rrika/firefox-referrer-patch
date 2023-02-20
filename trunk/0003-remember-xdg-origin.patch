@@ -1,7 +1,7 @@
-diff -r 8dd315952fe9 toolkit/components/downloads/DownloadPlatform.cpp
---- a/toolkit/components/downloads/DownloadPlatform.cpp Fri Jan 20 04:53:27 2023 +0000
-+++ b/toolkit/components/downloads/DownloadPlatform.cpp Sat Jan 21 13:12:47 2023 +0000
-@@ -166,12 +166,18 @@
+diff -r 495a3605f6d2 -r d598da2feb53 toolkit/components/downloads/DownloadPlatform.cpp
+--- a/toolkit/components/downloads/DownloadPlatform.cpp	Thu Jan 19 18:58:16 2023 +0000
++++ b/toolkit/components/downloads/DownloadPlatform.cpp	Sat Jan 21 13:13:55 2023 +0000
+@@ -166,12 +166,22 @@
          // manager.
          GFile* gio_file =
              g_file_new_for_path(NS_ConvertUTF16toUTF8(path).get());
@@ -9,15 +9,19 @@ diff -r 8dd315952fe9 toolkit/components/downloads/DownloadPlatform.cpp
 +        nsCString source_uri, referrer_uri;
          nsresult rv = aSource->GetSpec(source_uri);
          NS_ENSURE_SUCCESS(rv, rv);
-+        rv = aReferrer->GetSpec(referrer_uri);
-+        NS_ENSURE_SUCCESS(rv, rv);
++        if (aReferrer) {
++          rv = aReferrer->GetSpec(referrer_uri);
++          NS_ENSURE_SUCCESS(rv, rv);
++        }
          GFileInfo* file_info = g_file_info_new();
          g_file_info_set_attribute_string(file_info, "metadata::download-uri",
                                           source_uri.get());
 +        g_file_info_set_attribute_string(file_info, "xattr::xdg.origin.url",
 +                                         source_uri.get());
-+        g_file_info_set_attribute_string(file_info, "xattr::xdg.referrer.url",
-+                                         referrer_uri.get());
++        if (aReferrer) {
++          g_file_info_set_attribute_string(file_info, "xattr::xdg.referrer.url",
++                                           referrer_uri.get());
++        }
          g_file_set_attributes_async(gio_file, file_info, G_FILE_QUERY_INFO_NONE,
                                      G_PRIORITY_DEFAULT, nullptr,
                                      gio_set_metadata_done, nullptr);
